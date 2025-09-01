@@ -100,3 +100,8 @@
 .status-reintentar {
   @apply bg-yellow-100 text-yellow-800 border-yellow-300;
 }
+
+input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

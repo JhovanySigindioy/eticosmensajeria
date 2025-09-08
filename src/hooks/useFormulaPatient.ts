@@ -3,16 +3,16 @@ import { getDataFormulaPatient } from "@/api/eticos/formula.service";
 import { useQuery } from "@tanstack/react-query";
 
 export const useFormulaPatient = (
-  valor: string,
-  bodega: string,
+  registeredTypeNumber: string,
+  dispensaryCode: string,
   token: string
 ) => {
   const dataFormulaPatientQuery = useQuery({
-    queryKey: ["ServiceFormulaPatient", valor, bodega, token],
-    queryFn: () => getDataFormulaPatient(valor, bodega, token),
-    enabled: !!valor && !!bodega && !!token,
+    queryKey: ["ServiceFormulaPatient", registeredTypeNumber, dispensaryCode, token],
+    queryFn: () => getDataFormulaPatient(registeredTypeNumber, dispensaryCode, token),
+    enabled: false,
+    retry: false,
     staleTime: 1000 * 60 * 60,
-    retry: 1,
   });
 
   return {

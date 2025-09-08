@@ -6,21 +6,23 @@ import type { FormulaPatient } from "@/interfaces/formulaPatientData";
 
 
 export async function getDataFormulaPatient(
-    valor: string,
-    bodega: string,
+    registeredTypeNumber: string,
+    dispensaryCode: string,
     token: string
 ): Promise<ApiResponse<FormulaPatient>> {
     try {
+
+        console.log("Datos enviados a la API:", JSON.stringify({ registeredTypeNumber, dispensaryCode }, null, 2));
         const response = await axios.get<ApiResponse<FormulaPatient>>(
             `${env.eticos.urlBaseApi}/formula`,
             {
-                params: { valor, bodega },
+                params: { registeredTypeNumber, dispensaryCode },
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             }
-        );  
-
+        );
+        console.log("📦 Respuesta recibidad de la api:", JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error: any) {
         throw new Error(

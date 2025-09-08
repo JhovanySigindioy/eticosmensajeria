@@ -23,7 +23,7 @@ interface EntregaCardProps {
 const statusStyles: Record<string, { badge: string; block: string }> = {
     confirmado: {
         badge: "border-green-400 bg-green-50 text-green-700",
-        block: "border-green-200",
+        block: "border-green-400",
     },
     rechazado: {
         badge: "border-red-500 bg-red-100 text-red-700",
@@ -53,39 +53,50 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
         block: "border-gray-200",
     };
 
-    const deliveryStatus = entrega.sentToHomeDelivery ? <span className="flex gap-1 items-center"><Truck className="h-5 w-5" />Enviado</span> : <span><Truck className="h-5 w-5" />No enviado</span>;
+    // 🎨 Estado visual de la viñeta de envío a domicilio
+    const deliveryStatus = entrega.sentToHomeDelivery
+        ? {
+            text: "Enviado",
+            style: "border-green-500 bg-green-100 text-green-700",
+            block: "border-green-200 hover:border-green-400 hover:shadow-xl",
+        }
+        : {
+            text: "No Enviado",
+            style: "border-red-500 bg-red-100 text-red-700",
+            block: "border-red-200 hover:border-red-400 hover:shadow-xl",
+        };
 
     return (
         <motion.div
             layout
-            className="relative border rounded-xl hover:shadow-lg p-4 bg-white hover:border-gray-300 transition-all duration-300 overflow-hidden"
+            className={`relative border rounded-xl shadow-md p-4 bg-white transition-all duration-300 ${deliveryStatus.block}`}
         >
             {/*  Viñeta de estado de envío */}
             <div
-                className={` absolute  top-0 right-0 px-4 py-2 flex items-center justify-center text-[11px] font-extrabold text-white uppercase rounded-bl-xl rounded-tr-xl  border ${styles.badge}`}
+                className={`absolute top-0 right-0 px-4 py-4 flex items-center justify-center text-[11px] font-bold uppercase rounded-bl-xl rounded-tr-xl border z-20 tranform translate-x-1 -translate-y-1  ${deliveryStatus.style}`}
             >
-                <span className="flex items-center">
-                    {deliveryStatus}
+                <span className="flex items-center gap-1">
+                    <Truck className="h-5 w-5" />
+                    {deliveryStatus.text}
                 </span>
             </div>
 
             {/* Encabezado */}
             <div className="flex justify-between items-start mb-3">
                 <div className="flex gap-1">
-                    <Badge
-                        variant="outline"
-                        className="text-[12px] border border-gray-300 bg-gray-100 text-gray-700 px-2 py-0.5 text-bold"
+                    <div
+                       className="text-sm font-semibold text-gray-900" 
                     >
                         Radicado: {entrega.registeredTypeNumber}
-                    </Badge>
-                    {entrega.registeredTypeNumber !== entrega.identification && (
+                    </div>
+                    {/* {entrega.registeredTypeNumber !== entrega.identification && (
                         <Badge
                             variant="outline"
                             className="text-[12px] border border-gray-300 bg-gray-50 text-gray-600 px-2 py-0.5"
                         >
                             Fórmula: {entrega.identification}
                         </Badge>
-                    )}
+                    )} */}
                 </div>
             </div>
 
@@ -149,9 +160,9 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
                 </div>
 
                 {/* Bloque: Gestión */}
-                <div className="md:col-span-1 ">
+                <div className="md:col-span-1">
                     <Label className="text-sm font-semibold text-gray-900">Gestión</Label>
-                    <div className="border flex flex-col gap-2 p-2 rounded-md border-blue-200 mt-1 shadow-md" >
+                    <div className="border border-gray-200 flex flex-col gap-2 p-2 rounded-md mt-1 shadow-md">
                         <div className="flex items-center">
                             <CalendarIcon className="h-4 w-4 mr-2 text-[#0082FF]" />
                             <span>

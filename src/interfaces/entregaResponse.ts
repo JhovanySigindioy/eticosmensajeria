@@ -1,4 +1,4 @@
-import type { CallResult, PackageType } from "@/types/EntregaPendiente.types";
+import type { CallResult, PackageType } from "@/types/EntregaRequest.types";
 
 export interface SavedEntregaRes {
    registeredTypeNumber: string;

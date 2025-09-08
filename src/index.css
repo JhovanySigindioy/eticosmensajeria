@@ -105,3 +105,16 @@ input:focus {
   outline: none !important;
   box-shadow: none !important;
 }
+
+/* Ocultar scrollbars pero mantener funcionalidad */
+.scroll-hidden {
+  -ms-overflow-style: none;
+  /* IE y Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari y Opera */
+}

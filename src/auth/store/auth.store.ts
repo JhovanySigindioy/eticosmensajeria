@@ -1,39 +1,35 @@
+// src/store/useAuthStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AuthSuccessResponse } from "../interfaces/authResponse";
-
-interface AuthState {
-  user: AuthSuccessResponse | null;
-  token: string | null;
-  login: (data: AuthSuccessResponse) => void;
-  logout: () => void;
-}
+import type { AuthState } from "../interfaces/authState";
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
       token: null,
+      contractData: null,
 
-      // ✅ Login: guarda todo el objeto y el token
-      login: (data) =>
+      login: (data, contract) =>
         set({
           user: data,
           token: data.tokenjwt,
+          contractData: contract,
         }),
 
-      // ❌ Logout: limpia sesión
       logout: () =>
         set({
           user: null,
           token: null,
+          contractData: null,
         }),
     }),
     {
-      name: "auth-storage", // 🔑 clave en localStorage
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         token: state.token,
+        contractData: state.contractData,
       }),
     }
   )

@@ -10,7 +10,7 @@ interface LoginCredentials {
 
 export type LoginResponse = AuthSuccessResponse | AuthErrorResponse;
 
-export async function login(credentials: LoginCredentials): Promise<LoginResponse> {
+export async function loginService(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
         const response = await axios.post<AuthSuccessResponse>(
             `${env.eticos.urlLoginApi}`,

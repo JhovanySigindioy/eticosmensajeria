@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
+// src/components/ValidationForm.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
-    Calendar as CalendarIcon,
-    Clock,
-    Phone,
-    MapPin,
-    MessageSquare,
-    Save,
     X,
+    MessageSquare,
+    Calendar as CalendarIcon,
+    Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,177 +23,208 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import type { Pedido } from "@/types/pedido.types";
+import { es } from "date-fns/locale";
 
-// 🔑 Tipo auxiliar para el formulario
-interface FormPedido
-    extends Omit<Pedido, "fechaEntrega" | "fechaGestion" | "intentos"> {
-    fechaEntrega: Date;
-    intentos?: number;
-    fechaGestion?: string;
-}
+import { useFormulaPatient } from "@/hooks/useFormulaPatient";
+import { useAuthStore } from "@/auth/store/auth.store";
+import { useEntregasPendientesStore } from "@/store/useEntregasPendientesStore";
+import type {
+    CallResult,
+    EntregaPendiente,
+    PackageType,
+} from "@/types/EntregaPendiente.types";
+import { EditarPacienteModal } from "./EditarPacientemodal";
+import { useEntrega } from "@/hooks/useEntrega";
+import type { SavedEntregaRes } from "@/interfaces/entregaResponse";
 
-interface ValidationFormProps {
-    pedidos: Pedido[];
-    onSave: (pedido: Pedido) => void;
-    selectedPedido: Pedido | null;
-    clearSelectedPedido: () => void;
-    regente: string;
-}
+const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
+    const { contractData, token } = useAuthStore();
 
-const ValidationForm: React.FC<ValidationFormProps> = ({
-    pedidos,
-    onSave,
-    selectedPedido,
-    clearSelectedPedido,
-    regente,
-}) => {
-    const [radicado, setRadicado] = useState<string>("");
-    const [formData, setFormData] = useState<FormPedido>({
-        id: "",
-        paciente: "",
+    // Zustand
+    const selectedEntrega = useEntregasPendientesStore((s) => s.selectedEntrega);
+    const addOrUpdateEntrega = useEntregasPendientesStore(
+        (s) => s.addOrUpdateEntrega
+    );
+    const setSelectedEntrega = useEntregasPendientesStore(
+        (s) => s.setSelectedEntrega
+    );
+
+    // Mutation para enviar al backend
+    const { mutateAsync: saveEntrega, isPending } = useEntrega(token || "");
+
+    const [searchValue, setSearchValue] = useState<string>("");
+
+    const [formData, setFormData] = useState<EntregaPendiente>({
+        radicadoTipoNumero: "",
+        nombrePaciente: "",
+        identificacion: "",
+        contacto1: "",
+        contacto2: null,
+        correo: null,
         direccion: "",
-        telefono: "",
-        fechaEntrega: new Date(),
-        hora: "",
-        resultadoLlamada: "",
-        observaciones: "",
-        estado: "pendiente",
+        fechaGestion: "",
+        horaGestion: "",
+        fechaDomicilio: null,
+        horaDomicilio: null,
+        tipoEmpaque: "generico",
+        resultadoLlamada: null,
+        observaciones: null,
+        regenteId: regente,
+        esUrgente: false,
     });
-    const { toast } = useToast();
 
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const { isLoading, refetch } = useFormulaPatient(
+        searchValue,
+        contractData?.pharmacy.pharmacyCode || "",
+        token || ""
+    );
+
+    // 🔄 Cuando seleccionamos una entrega desde el store
     useEffect(() => {
-        if (selectedPedido) {
-            setRadicado(selectedPedido.id);
+        if (selectedEntrega) {
+            setSearchValue(selectedEntrega.registeredTypeNumber);
             setFormData({
-                ...selectedPedido,
-                fechaEntrega: selectedPedido.fechaEntrega
-                    ? new Date(selectedPedido.fechaEntrega)
-                    : new Date(),
+                radicadoTipoNumero: selectedEntrega.registeredTypeNumber,
+                nombrePaciente: selectedEntrega.patientName,
+                identificacion: selectedEntrega.identification,
+                contacto1: selectedEntrega.primaryPhone,
+                contacto2: selectedEntrega.secondaryPhone,
+                correo: selectedEntrega.email,
+                direccion: selectedEntrega.address,
+                fechaGestion: selectedEntrega.managementDate,
+                horaGestion: selectedEntrega.managementTime,
+                fechaDomicilio: selectedEntrega.deliveryDate,
+                horaDomicilio: selectedEntrega.deliveryTime,
+                tipoEmpaque: selectedEntrega.packageType,
+                resultadoLlamada: selectedEntrega.callResult,
+                observaciones: selectedEntrega.notes,
+                regenteId: selectedEntrega.pharmacistId,
+                esUrgente: selectedEntrega.isUrgent,
             });
+            setErrorMessage(null);
         } else {
             resetForm();
         }
-    }, [selectedPedido]);
+    }, [selectedEntrega]);
 
     const resetForm = () => {
-        setRadicado("");
+        setSearchValue("");
         setFormData({
-            id: "",
-            paciente: "",
+            radicadoTipoNumero: "",
+            nombrePaciente: "",
+            identificacion: "",
+            contacto1: "",
+            contacto2: null,
+            correo: null,
             direccion: "",
-            telefono: "",
-            fechaEntrega: new Date(),
-            hora: "",
-            resultadoLlamada: "",
-            observaciones: "",
-            estado: "pendiente",
+            fechaGestion: "",
+            horaGestion: "",
+            fechaDomicilio: null,
+            horaDomicilio: null,
+            tipoEmpaque: "generico",
+            resultadoLlamada: null,
+            observaciones: null,
+            regenteId: regente,
+            esUrgente: false,
         });
+        setErrorMessage(null);
     };
 
-    const handleSearch = () => {
-        if (!radicado) {
-            toast({
-                title: "Campo vacío",
-                description: "Por favor, ingresa un radicado para buscar o crear.",
-                variant: "destructive",
-            });
+    const handleSearch = async () => {
+        if (!searchValue.trim()) {
+            setErrorMessage("Por favor, ingresa un radicado o tipo-número.");
             return;
         }
-        const pedidoEncontrado = pedidos.find(
-            (p) => p.id.toLowerCase() === radicado.toLowerCase()
-        );
-        if (pedidoEncontrado) {
-            setFormData({
-                ...pedidoEncontrado,
-                fechaEntrega: pedidoEncontrado.fechaEntrega
-                    ? new Date(pedidoEncontrado.fechaEntrega)
-                    : new Date(),
-            });
-            toast({
-                title: "Pedido encontrado",
-                description: `Cargando datos para el radicado ${pedidoEncontrado.id}.`,
-            });
-        } else {
+
+        try {
+            const { data } = await refetch();
+            if (data?.success && data.data) {
+                const paciente = data.data;
+                setFormData((prev) => ({
+                    ...prev,
+                    radicadoTipoNumero: paciente.numberFormula || "",
+                    nombrePaciente: paciente.name || "",
+                    direccion: paciente.address || "",
+                    contacto1: paciente.phones || "",
+                    correo: paciente.email || null,
+                    identificacion: paciente.identification || "",
+                }));
+                setErrorMessage(null);
+            } else {
+                setErrorMessage(`No se encontraron datos para ${searchValue}.`);
+                resetForm();
+            }
+        } catch {
+            setErrorMessage("Hubo un problema al consultar el servicio.");
             resetForm();
-            setFormData((prev) => ({ ...prev, id: radicado, estado: "pendiente" }));
-            toast({
-                title: "Nuevo Pedido",
-                description: `Creando un nuevo pedido con radicado ${radicado}. Ingresa los datos.`,
-            });
         }
     };
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSelectChange = (name: keyof FormPedido, value: string) => {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleDateChange = (date?: Date) => {
-        if (!date) return;
-        setFormData((prev) => ({ ...prev, fechaEntrega: date }));
-    };
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!formData.id || !formData.paciente || !formData.resultadoLlamada) {
-            toast({
-                title: "Campos requeridos",
-                description:
-                    "El radicado, paciente y resultado de llamada son obligatorios.",
-                variant: "destructive",
-            });
+
+        if (!formData.radicadoTipoNumero || !formData.nombrePaciente) {
+            setErrorMessage("El radicado y el paciente son obligatorios.");
             return;
         }
 
-        let nuevoEstado = formData.estado;
-        if (formData.resultadoLlamada === "confirmado") nuevoEstado = "confirmado";
-        if (formData.resultadoLlamada === "rechazado") nuevoEstado = "cancelado";
-        if (["no-contesta", "reprogramar"].includes(formData.resultadoLlamada)) {
-            nuevoEstado = "en-gestion";
+        if (
+            formData.resultadoLlamada === "confirmado" &&
+            !formData.fechaDomicilio
+        ) {
+            setErrorMessage(
+                "Debe seleccionar una fecha de domicilio para entregas confirmadas."
+            );
+            return;
         }
 
-        onSave({
+        const payload: EntregaPendiente = {
             ...formData,
-            estado: nuevoEstado,
-            regente,
-            fechaGestion: new Date().toISOString(),
-            intentos: (selectedPedido ? formData.intentos || 0 : 0) + 1,
-            fechaEntrega: formData.fechaEntrega.toISOString(),
-        });
-        resetForm();
-        clearSelectedPedido();
+            fechaGestion: new Date().toISOString().split("T")[0], // yyyy-mm-dd
+            horaGestion: new Date().toISOString().substring(11, 19), // hh:mm:ss
+        };
+
+        try {
+            const response = await saveEntrega(payload);
+            console.log("✅ Envío exitosooooooooooooooooooooooo exitoso:", payload);
+
+            // 🔑 Guardar en el store la respuesta oficial del backend
+            if (response.data) {
+                addOrUpdateEntrega(response.data as SavedEntregaRes);
+            }
+
+            resetForm();
+            setSelectedEntrega(null);
+        } catch (err) {
+            const error = err as Error;
+            console.error("❌ Error al enviar entrega:", error.message);
+            setErrorMessage(error.message);
+        }
     };
 
     return (
-        <Card className="shadow-lg border-t-4 border-[#0082FF]">
+        <Card className="shadow-lg border-t-2 border-[#0082FF]">
             <CardHeader>
                 <CardTitle className="text-[#0A1C41] flex items-center">
                     <MessageSquare className="mr-2 text-[#0082FF]" />
-                    Formulario Pendientes Entrega
+                    Formulario Entregas Pendientes
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* 🔎 Buscar por radicado */}
-                    <div className="space-y-2">
-                        <Label htmlFor="radicado" className="font-semibold text-[#0A1C41]">
-                            Radicado
+                <form onSubmit={handleSubmit} className="space-y-2">
+                    {/* 🔎 Buscador */}
+                    <div className="space-y-1">
+                        <Label htmlFor="busqueda" className="font-semibold text-[#0A1C41]">
+                            Buscar Radicado o Tipo-Número
                         </Label>
                         <div className="flex gap-2">
                             <Input
-                                id="radicado"
-                                name="radicado"
-                                placeholder="Ej: F10551-265895"
-                                value={radicado}
-                                onChange={(e) => setRadicado(e.target.value)}
+                                id="busqueda"
+                                placeholder="Ej: 1124853578 o F10551-265895"
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value.trim())}
                                 className="focus:border-[#0082FF] focus:ring-[#0082FF]"
                             />
                             <Button
@@ -202,165 +232,271 @@ const ValidationForm: React.FC<ValidationFormProps> = ({
                                 onClick={handleSearch}
                                 size="icon"
                                 className="bg-[#0082FF] hover:bg-[#005cbf]"
+                                disabled={isLoading}
                             >
-                                <Search className="h-4 w-4" />
+                                {isLoading ? "..." : <Search className="h-4 w-4" />}
                             </Button>
                         </div>
+                        {errorMessage && (
+                            <p className="text-red-600 text-sm font-semibold bg-red-50 border border-red-200 rounded-md p-2 mt-2">
+                                {errorMessage}
+                            </p>
+                        )}
                     </div>
 
-                    {/* resto del formulario animado */}
+                    {/* Formulario con data */}
                     <AnimatePresence>
-                        {formData.id && (
+                        {formData.radicadoTipoNumero && !errorMessage && (
                             <motion.div
-                                className="space-y-6"
-                                initial={{ opacity: 0, y: -20, height: 0 }}
-                                animate={{ opacity: 1, y: 0, height: "auto" }}
-                                exit={{ opacity: 0, y: -20, height: 0 }}
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.4 }}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-4"
                             >
-                                {/* Nombre del paciente */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="paciente" className="font-semibold text-[#0A1C41]">
-                                        Nombre del Paciente
-                                    </Label>
+                                {/* Número de fórmula */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="formula">Número de Fórmula</Label>
                                     <Input
-                                        id="paciente"
-                                        name="paciente"
-                                        placeholder="Nombre completo"
-                                        value={formData.paciente}
-                                        onChange={handleInputChange}
-                                        required
+                                        id="formula"
+                                        value={formData.radicadoTipoNumero}
+                                        readOnly
                                     />
                                 </div>
 
-                                {/* Fecha y hora */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label className="font-semibold text-[#0A1C41]">Fecha de Domicilio</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {formData.fechaEntrega
-                                                        ? format(formData.fechaEntrega, "PPP", { weekStartsOn: 1 })
-                                                        : "Seleccionar fecha"}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={formData.fechaEntrega}
-                                                    onSelect={handleDateChange}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="hora" className="font-semibold text-[#0A1C41]">
-                                            Hora
-                                        </Label>
-                                        <div className="relative">
-                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                id="hora"
-                                                name="hora"
-                                                type="time"
-                                                value={formData.hora}
-                                                onChange={handleInputChange}
-                                                className="pl-10"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
+                                {/* Cédula */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="identificacion">Número de Cédula</Label>
+                                    <Input
+                                        id="identificacion"
+                                        value={formData.identificacion}
+                                        readOnly
+                                    />
                                 </div>
 
-                                {/* Teléfono y dirección */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="telefono" className="font-semibold text-[#0A1C41]">
-                                            Teléfono
-                                        </Label>
-                                        <div className="relative">
-                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                id="telefono"
-                                                name="telefono"
-                                                placeholder="Número de contacto"
-                                                value={formData.telefono}
-                                                onChange={handleInputChange}
-                                                className="pl-10"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="direccion" className="font-semibold text-[#0A1C41]">
-                                            Dirección
-                                        </Label>
-                                        <div className="relative">
-                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                id="direccion"
-                                                name="direccion"
-                                                placeholder="Dirección de entrega"
-                                                value={formData.direccion}
-                                                onChange={handleInputChange}
-                                                className="pl-10"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
+                                {/* Paciente */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="paciente">Nombre del Paciente</Label>
+                                    <Input
+                                        id="paciente"
+                                        value={formData.nombrePaciente}
+                                        readOnly
+                                    />
+                                </div>
+
+                                {/* Teléfono */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="telefono">Teléfono</Label>
+                                    <Input id="telefono" value={formData.contacto1} readOnly />
+                                </div>
+
+                                {/* Correo */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="correo">Correo Electrónico</Label>
+                                    <Input
+                                        id="correo"
+                                        value={formData.correo || ""}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({ ...prev, correo: e.target.value }))
+                                        }
+                                    />
+                                </div>
+
+                                {/* Dirección actual */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="direccion">Dirección Actual</Label>
+                                    <Input id="direccion" value={formData.direccion} readOnly />
+                                </div>
+
+                                {/* Modal para editar dirección */}
+                                <div className="md:col-span-2">
+                                    <EditarPacienteModal
+                                        formData={formData}
+                                        setFormData={setFormData}
+                                    />
                                 </div>
 
                                 {/* Resultado llamada */}
-                                <div className="space-y-2">
-                                    <Label className="font-semibold text-[#0A1C41]">Resultado de la Llamada</Label>
+                                <div className="space-y-1">
+                                    <Label>Resultado de la Llamada</Label>
                                     <Select
-                                        value={formData.resultadoLlamada}
-                                        onValueChange={(value) => handleSelectChange("resultadoLlamada", value)}
+                                        value={formData.resultadoLlamada || ""}
+                                        onValueChange={(value: CallResult) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                resultadoLlamada: value,
+                                            }))
+                                        }
                                         required
                                     >
-                                        <SelectTrigger className="w-full">
+                                        <SelectTrigger>
                                             <SelectValue placeholder="Seleccionar resultado..." />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="confirmado">Confirmado ✅</SelectItem>
                                             <SelectItem value="no-contesta">No contesta ❌</SelectItem>
-                                            <SelectItem value="reprogramar">Reprogramar ⏳</SelectItem>
                                             <SelectItem value="rechazado">Rechazado 🚫</SelectItem>
+                                            <SelectItem value="numero-equivocado">
+                                                Número equivocado 🚫
+                                            </SelectItem>
+                                            <SelectItem value="no-volver-a-llamar">
+                                                No volver a llamar 🚫
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Fecha */}
+                                {formData.resultadoLlamada === "confirmado" && (
+                                    <div className="space-y-1">
+                                        <Label>Fecha de Domicilio</Label>
+                                        <div className="flex gap-2">
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className="flex-1 text-left">
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {formData.fechaDomicilio
+                                                            ? format(new Date(formData.fechaDomicilio), "PPP", {
+                                                                locale: es,
+                                                            })
+                                                            : "Seleccionar fecha"}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={
+                                                            formData.fechaDomicilio
+                                                                ? new Date(formData.fechaDomicilio)
+                                                                : undefined
+                                                        }
+                                                        onSelect={(date) =>
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                fechaDomicilio: date
+                                                                    ? date.toISOString().split("T")[0]
+                                                                    : null,
+                                                            }))
+                                                        }
+                                                        locale={es}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            {formData.fechaDomicilio && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            fechaDomicilio: null,
+                                                        }))
+                                                    }
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Hora */}
+                                {formData.resultadoLlamada === "confirmado" && (
+                                    <div className="space-y-1">
+                                        <Label>Hora de Entrega</Label>
+                                        <Input
+                                            type="time"
+                                            value={formData.horaDomicilio || ""}
+                                            onChange={(e) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    horaDomicilio: e.target.value || null,
+                                                }))
+                                            }
+                                            className="w-full"
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Tipo de Empaque */}
+                                <div className="space-y-1">
+                                    <Label>Tipo de empaque</Label>
+                                    <Select
+                                        value={formData.tipoEmpaque}
+                                        onValueChange={(val) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                tipoEmpaque: val as PackageType,
+                                            }))
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="generico">Genérico</SelectItem>
+                                            <SelectItem value="nevera">Nevera</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Urgente */}
+                                <div className="space-y-1">
+                                    <Label>¿Es urgente?</Label>
+                                    <Select
+                                        value={formData.esUrgente ? "si" : "no"}
+                                        onValueChange={(val) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                esUrgente: val === "si",
+                                            }))
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="no">No</SelectItem>
+                                            <SelectItem value="si">Sí</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 {/* Observaciones */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="observaciones" className="font-semibold text-[#0A1C41]">
-                                        Observaciones
-                                    </Label>
+                                <div className="md:col-span-2">
+                                    <Label htmlFor="observaciones">Observaciones</Label>
                                     <textarea
                                         id="observaciones"
-                                        name="observaciones"
-                                        value={formData.observaciones}
-                                        onChange={handleInputChange}
+                                        value={formData.observaciones || ""}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                observaciones: e.target.value,
+                                            }))
+                                        }
                                         rows={3}
-                                        className="w-full rounded-md border border-input p-2 text-sm focus:border-[#0082FF] focus:ring-[#0082FF]"
-                                        placeholder="Añadir comentarios o instrucciones"
+                                        className="w-full rounded-md border border-input p-2 text-sm"
+                                        placeholder="Comentarios o instrucciones"
                                     />
                                 </div>
 
                                 {/* Botones */}
-                                <div className="flex gap-4 pt-4">
-                                    <Button type="submit" className="flex-1 bg-[#0A1C41] hover:bg-[#081633]">
-                                        <Save className="mr-2 h-4 w-4" />{" "}
-                                        {selectedPedido ? "Actualizar Pedido" : "Registrar Pedido"}
+                                <div className="flex gap-4 md:col-span-2">
+                                    <Button
+                                        type="submit"
+                                        className="flex-1 bg-[#0A1C41]"
+                                        disabled={isPending}
+                                    >
+                                        <Truck className="mr-2 h-4 w-4" />{" "}
+                                        {isPending ? "Enviando..." : "Enviar a Domicilio"}
                                     </Button>
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={() => {
                                             resetForm();
-                                            clearSelectedPedido();
+                                            setSelectedEntrega(null);
                                         }}
                                         className="flex-1"
                                     >

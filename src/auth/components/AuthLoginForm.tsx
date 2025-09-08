@@ -63,6 +63,8 @@ export function AuthLoginForm({ onLogin, isLoading, error }: AuthLoginFormProps)
             <CardTitle className="text-2xl font-bold text-blue-950">
               Iniciar sesión
             </CardTitle>
+            <CardTitle className="text-xl font-bold text-gray-400 mt-5">Gestion Entregas Pendientes</CardTitle>
+
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(submit)} className="space-y-6">
@@ -135,7 +137,6 @@ export function AuthLoginForm({ onLogin, isLoading, error }: AuthLoginFormProps)
         </Card>
       </motion.div>
 
-      {/* Overlay de carga */}
       <LoadingOverlay show={!!isLoading} message="Iniciando sesión..." />
     </div>
   );

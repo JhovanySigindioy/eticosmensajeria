@@ -5,6 +5,7 @@ export interface AuthSuccessResponse {
   message: string;
   modality: string;
   name: string;
+  nit: string;
   program: number;
   tokenjwt: string;
 }

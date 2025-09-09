@@ -8,8 +8,8 @@ export interface SavedEntregaRes {
    secondaryPhone: string | null;
    email: string | null;
    address: string;
-   managementDate: string;   // ISO date string
-   managementTime: string;   // HH:mm:ss
+   managementDate: string;
+   managementTime: string;
    deliveryDate: string | null;
    deliveryTime: string | null;
    packageType: PackageType;
@@ -17,6 +17,6 @@ export interface SavedEntregaRes {
    notes: string | null;
    pharmacistId: string;
    isUrgent: boolean;
-   sentToHomeDelivery: boolean;
+   sentToHome: boolean;
    managementId: number;
 }

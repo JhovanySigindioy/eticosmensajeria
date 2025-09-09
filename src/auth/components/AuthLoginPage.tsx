@@ -2,7 +2,7 @@
 import { AuthLoginForm } from "./AuthLoginForm";
 import { useLoginMutation } from "../hooks/useLoginMutation";
 import { useAuth } from "../hooks/useAuth";
-import { getContractService } from "@/api/eticos/contract.service";
+import { getContractService } from "@/api/contract.service";
 
 export function AuthLoginPage() {
     const loginMutation = useLoginMutation();

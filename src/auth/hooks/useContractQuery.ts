@@ -1,6 +1,6 @@
 // src/auth/hooks/useContractQuery.ts
 import { useQuery } from "@tanstack/react-query";
-import { getContractService } from "@/api/eticos/contract.service";
+import { getContractService } from "@/api/contract.service";
 import type { ContractData } from "../interfaces/contractResponse";
 
 interface ContractQueryParams {

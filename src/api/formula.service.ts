@@ -22,7 +22,7 @@ export async function getDataFormulaPatient(
                 },
             }
         );
-        console.log("📦 Respuesta recibidad de la api:", JSON.stringify(response.data, null, 2));
+        console.log("DATA ENDPOINT FORMULA::: :", JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error: any) {
         throw new Error(

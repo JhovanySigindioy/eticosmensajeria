@@ -4,7 +4,8 @@ import { LogOut, Building2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/hooks/useAuth";
 import ValidationForm from "./ValidationForm";
-import { EntregasPendientesPanel } from "./EntregasPendientesPanel";
+import { HistoryPanel } from "./HistoryPanel";
+
 
 export function Dashboard() {
     const { user, logout, contractData } = useAuth();
@@ -80,7 +81,7 @@ export function Dashboard() {
 
                     {/* Lista */}
                     <div className="lg:col-span-3 flex flex-col gap-4">
-                        <EntregasPendientesPanel />
+                        <HistoryPanel />
                     </div>
                 </motion.div>
             </main>

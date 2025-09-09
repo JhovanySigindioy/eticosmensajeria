@@ -1,5 +1,5 @@
 // src/hooks/useFormulaPatient.ts
-import { getDataFormulaPatient } from "@/api/eticos/formula.service";
+import { getDataFormulaPatient } from "@/api/formula.service";
 import { useQuery } from "@tanstack/react-query";
 
 export const useFormulaPatient = (

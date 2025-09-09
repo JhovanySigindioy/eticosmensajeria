@@ -8,7 +8,7 @@ import { useEntregasPendientesStore } from "@/store/useEntregasPendientesStore";
 import { EntregaCard } from "./EntregaCard";
 import type { SavedEntregaRes } from "@/interfaces/entregaResponse";
 
-export function EntregasPendientesPanel() {
+export function HistoryPanel() {
   const [searchTerm, setSearchTerm] = useState("");
   const { entregas } = useEntregasPendientesStore();
 

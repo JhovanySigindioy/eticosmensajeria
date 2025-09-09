@@ -1,5 +1,5 @@
 //src/auth/hooks/useLoginMutation.ts
-import { loginService } from "@/api/eticos/auth.service";
+import { loginService } from "@/api/auth.service";
 import type { AuthErrorResponse, AuthSuccessResponse } from "@/auth/interfaces/authResponse";
 import { useMutation } from "@tanstack/react-query";
 import type { UseMutationResult } from "@tanstack/react-query";

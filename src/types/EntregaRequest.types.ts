@@ -17,8 +17,8 @@ export interface EntregaRequest {
     registeredTypeNumber: string;
     patientName: string;
     identification: string;
-    primaryContact: string;
-    secondaryContact?: string | null;
+    primaryPhone: string;
+    secondaryPhone?: string | null;
     email?: string | null;
     address: string;
 

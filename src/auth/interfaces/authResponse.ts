@@ -13,7 +13,7 @@ export interface AuthSuccessResponse {
 // Define la interfaz para un error de autenticación de la API
 export interface AuthErrorResponse {
   message: string;
-  succes: "false"; // 🔑 la API devuelve string, no boolean
+  succes: "false";
 }
 
 // Usa un tipo de unión para la respuesta

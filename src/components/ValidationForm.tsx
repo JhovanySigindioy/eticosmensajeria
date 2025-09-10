@@ -39,7 +39,8 @@ import type { SavedEntregaRes } from "@/interfaces/entregaResponse";
 import { EditInfoPatientModal } from "./EditInfoPatientModal";
 import { ConfirmActionModal } from "./confirmActionModal";
 
-const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
+// const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
+export function ValidationForm({ regente }: { regente: string }) {
     const { contractData, token } = useAuthStore();
 
     const selectedEntrega = useEntregasPendientesStore((s) => s.selectedEntrega);
@@ -156,8 +157,14 @@ const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
 
         try {
             const { data } = await refetch();
-            if (data?.success && data.data) {
+
+            if (!data) {
+                throw new Error("No hubo respuesta del servidor. Verifica tu conexión o intenta más tarde.");
+            }
+
+            if (data.success && data.data) {
                 const paciente = data.data;
+
                 setFormData((prev) => ({
                     ...prev,
                     registeredTypeNumber: paciente.registeredTypeNumber || "",
@@ -167,16 +174,29 @@ const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
                     email: paciente.email || null,
                     identification: paciente.identification || "",
                 }));
-                setErrorMessage(null);
+
+                setErrorMessage(null); // limpia el mensaje anterior si todo sale bien
+            } else if (data.success === false) {
+                // Aseguramos que el error sea string
+                const errorMsg = typeof data.error === "string"
+                    ? data.error
+                    : "Error desde el servidor. Verifica los datos ingresados.";
+
+                throw new Error(errorMsg);
             } else {
-                setErrorMessage(`No se encontraron datos para ${searchValue}.`);
-                resetForm();
+                throw new Error("Respuesta inesperada del servidor.");
             }
-        } catch {
-            setErrorMessage("Hubo un problema al consultar el servicio.");
-            resetForm();
+        } catch (err) {
+            console.error("❌ Error en búsqueda:", err);
+
+            setErrorMessage(
+                err instanceof Error
+                    ? err.message
+                    : "No se pudo conectar al servidor. Verifica tu conexión o intenta más tarde."
+            );
         }
     };
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -248,6 +268,17 @@ const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
+
+                    {(isLoading) && (
+                        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center z-20 rounded-md">
+                            <Loader2 className="h-8 w-8 animate-spin text-[#0082FF]" />
+                            <p className="mt-2 text-sm text-[#0A1C41] font-semibold">
+                                {isLoading
+                                    ? "Consultando información del paciente..."
+                                    : "Enviando entrega..."}
+                            </p>
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-2">
                         {/* 🔎 Buscador */}
                         <div className="space-y-1">
@@ -579,4 +610,3 @@ const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
     );
 };
 
-export default ValidationForm;

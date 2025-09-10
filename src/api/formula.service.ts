@@ -25,10 +25,20 @@ export async function getDataFormulaPatient(
         console.log("DATA ENDPOINT FORMULA::: :", JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error: any) {
-        throw new Error(
+        // Si es error de red
+        if (error.code === "ERR_NETWORK") {
+            console.error(" Error de red al consultar fórmula:", error);
+            throw new Error("No se pudo conectar al servidor. Verifica tu conexión.");
+        }
+
+        // Otro tipo de error (con respuesta del servidor)
+        const backendMessage =
             error.response?.data?.error ||
-            error.message ||
-            "Error obteniendo datos del paciente"
+            error.response?.data?.message;
+
+        throw new Error(
+            backendMessage || error.message || "Error desconocido al obtener datos del paciente."
         );
     }
+
 }

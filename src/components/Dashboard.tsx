@@ -3,9 +3,8 @@ import { motion } from "framer-motion";
 import { LogOut, Building2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/hooks/useAuth";
-import ValidationForm from "./ValidationForm";
+import { ValidationForm } from "./ValidationForm";
 import { HistoryPanel } from "./HistoryPanel";
-
 
 export function Dashboard() {
     const { user, logout, contractData } = useAuth();

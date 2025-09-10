@@ -45,15 +45,15 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
 
   const deliveryStatus = entrega.sentToHome
     ? {
-        text: "Enviado",
-        style: "border-green-500 bg-green-100 text-green-700",
-        block: "border-green-200 hover:border-green-400 hover:shadow-xl",
-      }
+      text: "Enviado",
+      style: "border-green-500 bg-green-100 text-green-700",
+      block: "border-green-200 hover:border-green-400 hover:shadow-xl",
+    }
     : {
-        text: "No Enviado",
-        style: "border-red-500 bg-red-100 text-red-700",
-        block: "border-red-200 hover:border-red-400 hover:shadow-xl",
-      };
+      text: "No Enviado",
+      style: "border-red-500 bg-red-100 text-red-700",
+      block: "border-red-200 hover:border-red-400 hover:shadow-xl",
+    };
 
   return (
     <motion.div
@@ -104,14 +104,14 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
                   <span>
                     {entrega.deliveryDate
                       ? format(
-                          parse(
-                            entrega.deliveryDate,
-                            "yyyy-MM-dd",
-                            new Date()
-                          ),
-                          "PPP",
-                          { locale: es }
-                        )
+                        parse(
+                          entrega.deliveryDate,
+                          "yyyy-MM-dd",
+                          new Date()
+                        ),
+                        "PPP",
+                        { locale: es }
+                      )
                       : "Sin fecha programada"}
                   </span>
                 </div>
@@ -165,10 +165,10 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
               <span>
                 {entrega.managementDate
                   ? format(
-                      parse(entrega.managementDate, "yyyy-MM-dd", new Date()),
-                      "PPP",
-                      { locale: es }
-                    )
+                    parse(entrega.managementDate, "yyyy-MM-dd", new Date()),
+                    "PPP",
+                    { locale: es }
+                  )
                   : "No registrada"}
               </span>
             </div>

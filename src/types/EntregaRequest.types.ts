@@ -1,5 +1,4 @@
 //src/types/EntregaPendiente.types.ts
-
 export type CallResult =
     | "confirmado"
     | "rechazado"
@@ -7,7 +6,6 @@ export type CallResult =
     | "reprogramar"
     | "numero-equivocado"
     | "no-volver-a-llamar";
-
 
 export type PackageType =
     | "generico"
@@ -31,7 +29,7 @@ export interface EntregaRequest {
     packageType: string;
     callResult: string;
     notes?: string | null;
-    pharmacistId: string;
     isUrgent?: boolean;
-}
 
+    pharmacyCode: string;
+}

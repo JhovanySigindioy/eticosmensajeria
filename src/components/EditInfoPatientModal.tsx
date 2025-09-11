@@ -15,9 +15,10 @@ import AddressForm from "./AddressForm";
 import type { EntregaRequest } from "@/types/EntregaRequest.types";
 import { usePatient } from "@/hooks/usePatient";
 import { useAuth } from "@/auth/hooks/useAuth";
-import { ConfirmActionModal } from "./confirmActionModal";
 import type { Address } from "@/interfaces/address";
 import { formatAddress } from "@/utils/formatAddress";
+import { ConfirmActionModal } from "./confirmActionModal";
+import { set } from "zod";
 
 interface Props {
     formData: EntregaRequest;
@@ -27,6 +28,9 @@ interface Props {
 export function EditInfoPatientModal({ formData, setFormData }: Props) {
     const [modalState, setModalState] = useState<"confirm" | "loading" | "success" | "error">("confirm");
     const [modalOpen, setModalOpen] = useState(false);
+    const [modalTitle, setModalTitle] = useState<string>("");
+    const [modalMessage, setModalMessage] = useState<string>("");
+
     const [open, setOpen] = useState(false);
     const { token } = useAuth();
     const { mutateAsync: updatePatient } = usePatient(token || "");
@@ -46,39 +50,36 @@ export function EditInfoPatientModal({ formData, setFormData }: Props) {
 
     const [addressObj, setAddressObj] = useState<Address>({
         tipoVia: "",
-        numeroVia: "",
-        complementoVia: "",
+        numeroPrincipal: "",
+        numeroSecundario: "",
+        numeroFinal: "",
         barrio: "",
         detallesAdicionales: "",
         municipio: "",
-        departamento: "",
+        departamento: ""
     });
 
     const handleSave = () => {
         const formattedAddress = formatAddress(addressObj);
 
-        setOpen(false);
         setModalState("loading");
+        setModalTitle("Guardando cambios...");
+        setModalMessage("Estamos actualizando la información del paciente.");
         setModalOpen(true);
 
         const payload: Record<string, unknown> = {
             identification: tempData.identification,
         };
 
-        if (tempData.patientName && tempData.patientName.trim() !== "") {
-            payload.namePatient = tempData.patientName;
-        }
-        if (tempData.primaryPhone && tempData.primaryPhone.trim() !== "") {
-            payload.primaryPhone = tempData.primaryPhone;
-        }
-        if (tempData.secondaryPhone && tempData.secondaryPhone.trim() !== "") {
-            payload.secondaryPhone = tempData.secondaryPhone;
-        }
-        if (tempData.email && tempData.email.trim() !== "") {
-            payload.email = tempData.email;
-        }
-        if (formattedAddress && formattedAddress.trim() !== "") {
-            payload.address = formattedAddress;
+        if (tempData.patientName?.trim()) payload.namePatient = tempData.patientName;
+        if (tempData.primaryPhone?.trim()) payload.primaryPhone = tempData.primaryPhone;
+        if (tempData.secondaryPhone?.trim()) payload.secondaryPhone = tempData.secondaryPhone;
+        if (tempData.email?.trim()) payload.email = tempData.email;
+
+
+        const addressToSave = formattedAddress?.trim() ? formattedAddress : formData.address;
+        if (addressToSave) {
+            payload.address = addressToSave;
         }
 
         updatePatient(payload, {
@@ -86,12 +87,17 @@ export function EditInfoPatientModal({ formData, setFormData }: Props) {
                 setFormData({
                     ...formData,
                     ...tempData,
-                    address: formattedAddress || formData.address,
+                    address: addressToSave,
                 });
                 setModalState("success");
+                setModalTitle("¡Datos actualizados!");
+                setModalMessage("La información del paciente se guardó correctamente.");
+                setOpen(false);
             },
             onError: () => {
                 setModalState("error");
+                setModalTitle("Error al guardar");
+                setModalMessage("No fue posible actualizar la información. Intenta de nuevo.");
             },
         });
     };
@@ -123,7 +129,12 @@ export function EditInfoPatientModal({ formData, setFormData }: Props) {
                         <label htmlFor="identification" className="text-sm font-medium">
                             Identificación
                         </label>
-                        <Input id="identification" className="bg-blue-300/10 border-blue-500/10" value={tempData.identification} readOnly />
+                        <Input
+                            id="identification"
+                            className="bg-blue-300/10 border-blue-500/10"
+                            value={tempData.identification}
+                            readOnly
+                        />
                     </div>
 
                     {/* Nombre */}
@@ -134,8 +145,8 @@ export function EditInfoPatientModal({ formData, setFormData }: Props) {
                         <Input
                             id="patientName"
                             className="bg-blue-300/10 border-blue-500/10"
-                            value={tempData.patientName} readOnly
-                           
+                            value={tempData.patientName}
+                            readOnly
                         />
                     </div>
 
@@ -182,10 +193,25 @@ export function EditInfoPatientModal({ formData, setFormData }: Props) {
                         />
                     </div>
 
+                    {/* Dirección actual */}
+                    <div>
+                        <label htmlFor="addressold" className="text-sm font-medium">
+                            Dirección Actual
+                        </label>
+                        <Input
+                            id="addressold"
+                            type="text"
+                            value={formData.address || ""}
+                            readOnly
+                            className="bg-blue-300/10 border-blue-500/10"
+                        />
+                    </div>
+
                     {/* Dirección nueva */}
                     <div className="col-span-2">
                         <AddressForm value={addressObj} onChange={setAddressObj} />
                     </div>
+
                 </div>
 
                 <DialogFooter>
@@ -193,6 +219,8 @@ export function EditInfoPatientModal({ formData, setFormData }: Props) {
                         onClick={() => {
                             setModalOpen(true);
                             setModalState("confirm");
+                            setModalTitle("¿Confirmar actualización?");
+                            setModalMessage("Se guardarán los cambios en la información del paciente.");
                         }}
                         className="bg-[#0082FF] text-white hover:bg-[#152a61]"
                     >
@@ -207,6 +235,8 @@ export function EditInfoPatientModal({ formData, setFormData }: Props) {
                 onClose={() => setModalOpen(false)}
                 onConfirm={handleSave}
                 state={modalState}
+                title={modalTitle}
+                message={modalMessage}
             />
         </Dialog>
     );

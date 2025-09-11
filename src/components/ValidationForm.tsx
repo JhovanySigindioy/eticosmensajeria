@@ -38,9 +38,13 @@ import { useEntrega } from "@/hooks/useEntrega";
 import type { SavedEntregaRes } from "@/interfaces/entregaResponse";
 import { EditInfoPatientModal } from "./EditInfoPatientModal";
 import { ConfirmActionModal } from "./confirmActionModal";
+import { formatDate, formatTime } from "@/utils/formatDateTime";
 
 // const ValidationForm: React.FC<{ regente: string }> = ({ regente }) => {
-export function ValidationForm({ regente }: { regente: string }) {
+export function ValidationForm() {
+
+    const [modalTitle, setModalTitle] = useState<string>("");
+
     const { contractData, token } = useAuthStore();
 
     const selectedEntrega = useEntregasPendientesStore((s) => s.selectedEntrega);
@@ -66,8 +70,8 @@ export function ValidationForm({ regente }: { regente: string }) {
         packageType: "generico",
         callResult: "",
         notes: null,
-        pharmacistId: regente,
         isUrgent: false,
+        pharmacyCode: "",
     });
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -105,8 +109,8 @@ export function ValidationForm({ regente }: { regente: string }) {
                 packageType: selectedEntrega.packageType,
                 callResult: selectedEntrega.callResult,
                 notes: selectedEntrega.notes,
-                pharmacistId: selectedEntrega.pharmacistId,
                 isUrgent: selectedEntrega.isUrgent,
+                pharmacyCode: contractData?.pharmacy.pharmacyCode || "",
             });
             setErrorMessage(null);
         } else {
@@ -143,8 +147,8 @@ export function ValidationForm({ regente }: { regente: string }) {
             packageType: "generico",
             callResult: "",
             notes: null,
-            pharmacistId: regente,
             isUrgent: false,
+            pharmacyCode: "",
         });
         setErrorMessage(null);
     };
@@ -202,7 +206,16 @@ export function ValidationForm({ regente }: { regente: string }) {
         e.preventDefault();
         setModalMessage("");
 
+        if (formData.callResult === "" || !formData.callResult) {
+            setModalTitle("Validación incompleta");
+            setModalMessage("Debe seleccionar un resultado de llamada.");
+            setModalState("error");
+            setModalOpen(true);
+            return;
+        }
+
         if (!formData.registeredTypeNumber || !formData.patientName) {
+            setModalTitle("Campos obligatorios");
             setModalMessage("El radicado y el paciente son obligatorios.");
             setModalState("error");
             setModalOpen(true);
@@ -210,22 +223,59 @@ export function ValidationForm({ regente }: { regente: string }) {
         }
 
         if (formData.callResult === "confirmado" && !formData.deliveryDate) {
-            setModalMessage(
-                "Debe seleccionar una fecha de domicilio para entregas confirmadas."
-            );
+            setModalTitle("Falta fecha de entrega");
+            setModalMessage("Debe seleccionar una fecha de domicilio para entregas confirmadas.");
             setModalState("error");
             setModalOpen(true);
             return;
         }
 
-        // 👇 abrir modal en confirmación antes de procesar
-        setModalMessage("Enviar entrega a servicio de gestión de domicilios");
+        // Abrir modal de confirmación
+        setModalTitle("¿Confirmar envío?");
+        setModalMessage("Se enviará la entrega al servicio de gestión de domicilios.");
         setModalState("confirm");
         setModalOpen(true);
+
     };
 
+    // const confirmSave = async () => {
+    //     setModalState("loading");
+    //     const phones = formData.primaryPhone
+    //         ? formData.primaryPhone.split(",").map((p) => p.trim())
+    //         : [];
+
+    //     const payload: EntregaRequest = {
+    //         ...formData,
+    //         primaryPhone: phones[0] || "",
+    //         secondaryPhone: phones[1] || formData.secondaryPhone || null,
+    //         managementDate: format(new Date(), "yyyy-MM-dd"), // fecha local
+    //         managementTime: format(new Date(), "HH:mm:ss"), // hora local
+    //         deliveryTime: formData.deliveryTime
+    //             ? `${formData.deliveryTime}:00`
+    //             : null, // normalizar a HH:mm:ss
+    //         pharmacyCode: contractData?.pharmacy.pharmacyCode || "",
+    //         notes: formData.notes + " " + JSON.stringify(contractData?.pharmacy, null, 2),//Pilas, eliminar el json
+    //     };
+
+    //     try {
+    //         const response = await saveEntrega(payload);
+    //         if (response.data) {
+    //             addOrUpdateEntrega(response.data as SavedEntregaRes);
+    //         }
+
+    //         setModalState("success");
+    //         resetForm();
+    //         setSelectedEntrega(null);
+    //     } catch (err) {
+    //         const error = err as Error;
+    //         console.error("❌ Error al enviar entrega:", error.message);
+    //         setModalMessage(error.message);
+    //         setModalState("error");
+    //     }
+    // };
     const confirmSave = async () => {
         setModalState("loading");
+
         const phones = formData.primaryPhone
             ? formData.primaryPhone.split(",").map((p) => p.trim())
             : [];
@@ -234,11 +284,11 @@ export function ValidationForm({ regente }: { regente: string }) {
             ...formData,
             primaryPhone: phones[0] || "",
             secondaryPhone: phones[1] || formData.secondaryPhone || null,
-            managementDate: format(new Date(), "yyyy-MM-dd"), // fecha local
-            managementTime: format(new Date(), "HH:mm:ss"), // hora local
-            deliveryTime: formData.deliveryTime
-                ? `${formData.deliveryTime}:00`
-                : null, // normalizar a HH:mm:ss
+            managementDate: formatDate(new Date()),      // fecha local normalizada
+            managementTime: formatTime(new Date()),      // hora local normalizada
+            deliveryTime: formData.deliveryTime,         // ya está en "HH:mm:ss" desde el input
+            pharmacyCode: contractData?.pharmacy.pharmacyCode || "",
+            notes: formData.notes || null,
         };
 
         try {
@@ -247,17 +297,19 @@ export function ValidationForm({ regente }: { regente: string }) {
                 addOrUpdateEntrega(response.data as SavedEntregaRes);
             }
 
+            setModalTitle("¡Guardado con éxito!");
+            setModalMessage("La entrega se registró correctamente.");
             setModalState("success");
             resetForm();
             setSelectedEntrega(null);
         } catch (err) {
             const error = err as Error;
             console.error("❌ Error al enviar entrega:", error.message);
+            setModalTitle("Error al guardar datos");
             setModalMessage(error.message);
             setModalState("error");
         }
     };
-
     return (
         <>
             <Card className="shadow-lg border-t-2 border-[#0082FF]">
@@ -280,15 +332,15 @@ export function ValidationForm({ regente }: { regente: string }) {
                         </div>
                     )}
                     <form onSubmit={handleSubmit} className="space-y-2">
-                        {/* 🔎 Buscador */}
+
                         <div className="space-y-1">
                             <Label htmlFor="search" className="font-semibold text-[#0A1C41]">
-                                Buscar Radicado o Tipo-Número
+                                Buscar Radicado
                             </Label>
                             <div className="flex gap-2">
                                 <Input
                                     id="search"
-                                    placeholder="Ej: 1124853578 o F10551-265895"
+                                    placeholder="Ej: 41879663"
                                     value={searchValue}
                                     onChange={(e) =>
                                         setSearchValue(e.target.value.trim())
@@ -477,19 +529,25 @@ export function ValidationForm({ regente }: { regente: string }) {
                                                     <Input
                                                         type="time"
                                                         value={
-                                                            formData.deliveryTime ||
-                                                            ""
+                                                            formData.deliveryTime
+                                                                ? format(parse(formData.deliveryTime, "HH:mm:ss", new Date()), "HH:mm")
+                                                                : ""
                                                         }
-                                                        onChange={(e) =>
+                                                        onChange={(e) => {
+                                                            const raw = e.target.value;
                                                             setFormData((prev) => ({
                                                                 ...prev,
-                                                                deliveryTime:
-                                                                    e.target.value ||
-                                                                    null,
-                                                            }))
-                                                        }
+                                                                deliveryTime: raw ? `${raw}:00` : null,
+                                                            }));
+                                                        }}
                                                         className="w-full"
                                                     />
+                                                    {formData.deliveryTime && (
+                                                        <p className="text-sm text-gray-500">
+                                                            Hora local:{" "}
+                                                            {format(parse(formData.deliveryTime, "HH:mm:ss", new Date()), "hh:mm a")}
+                                                        </p>
+                                                    )}
                                                 </div>
 
                                                 <div className="space-y-1">
@@ -604,6 +662,7 @@ export function ValidationForm({ regente }: { regente: string }) {
                 onClose={() => setModalOpen(false)}
                 onConfirm={confirmSave}
                 state={modalState}
+                title={modalTitle}
                 message={modalMessage}
             />
         </>

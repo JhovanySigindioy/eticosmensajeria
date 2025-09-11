@@ -29,3 +29,23 @@ export async function saveManagementEntregasService(
         );
     }
 }
+
+
+export async function getManagementEntregasService(token: string): Promise<ApiResponse<SavedEntregaRes[]>> {
+    try {
+        const response = await axios.get<ApiResponse<SavedEntregaRes[]>>(
+            `${env.eticos.urlBaseApi}/management-entregas`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data
+    } catch (error: any) {
+        throw new Error(
+            error.response?.data?.error || "Error al obtener gestiones en la BD"
+        );
+    }
+}

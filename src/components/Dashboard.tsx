@@ -20,7 +20,7 @@ export function Dashboard() {
                             className="h-10 w-auto mb-1"
                         />
                         <h1 className="text-xl md:text-xl font-bold">
-                            Panel Gestión Entregas Pendientes
+                            Gestión de Entregas Pendientes
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ export function Dashboard() {
                 >
                     {/* Formulario */}
                     <div className="lg:col-span-2 lg:sticky lg:top-24">
-                        <ValidationForm regente={user?.name ?? ""} />
+                        <ValidationForm />
                     </div>
 
                     {/* Lista */}

@@ -1,4 +1,3 @@
-// src/components/EntregaCard.tsx
 import { motion } from "framer-motion";
 import { Badge } from "./ui/badge";
 import {
@@ -11,10 +10,9 @@ import {
   User,
   Truck,
 } from "lucide-react";
-import { format, parse } from "date-fns";
-import { es } from "date-fns/locale";
 import { Label } from "@/components/ui/label";
 import type { SavedEntregaRes } from "@/interfaces/entregaResponse";
+import { prettyDate, prettyTime } from "@/utils/formatDateTime";
 
 interface EntregaCardProps {
   entrega: SavedEntregaRes;
@@ -45,15 +43,15 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
 
   const deliveryStatus = entrega.sentToHome
     ? {
-      text: "Enviado",
-      style: "border-green-500 bg-green-100 text-green-700",
-      block: "border-green-200 hover:border-green-400 hover:shadow-xl",
-    }
+        text: "Enviado",
+        style: "border-green-500 bg-green-100 text-green-700",
+        block: "border-green-200 hover:border-green-400 hover:shadow-xl",
+      }
     : {
-      text: "No Enviado",
-      style: "border-red-500 bg-red-100 text-red-700",
-      block: "border-red-200 hover:border-red-400 hover:shadow-xl",
-    };
+        text: "No Enviado",
+        style: "border-red-500 bg-red-100 text-red-700",
+        block: "border-red-200 hover:border-red-400 hover:shadow-xl",
+      };
 
   return (
     <motion.div
@@ -103,22 +101,14 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
                   <CalendarIcon className="h-4 w-4 mr-2 text-green-600" />
                   <span>
                     {entrega.deliveryDate
-                      ? format(
-                        parse(
-                          entrega.deliveryDate,
-                          "yyyy-MM-dd",
-                          new Date()
-                        ),
-                        "PPP",
-                        { locale: es }
-                      )
+                      ? prettyDate(entrega.deliveryDate)
                       : "Sin fecha programada"}
                   </span>
                 </div>
                 {entrega.deliveryTime && (
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-2 text-green-600" />
-                    <span>{entrega.deliveryTime}</span>
+                    <span>{prettyTime(entrega.deliveryTime)}</span>
                   </div>
                 )}
               </div>
@@ -162,19 +152,11 @@ export function EntregaCard({ entrega }: EntregaCardProps) {
           <div className="border border-gray-200 flex flex-col gap-2 p-2 rounded-md mt-1 shadow-md">
             <div className="flex items-center">
               <CalendarIcon className="h-4 w-4 mr-2 text-[#0082FF]" />
-              <span>
-                {entrega.managementDate
-                  ? format(
-                    parse(entrega.managementDate, "yyyy-MM-dd", new Date()),
-                    "PPP",
-                    { locale: es }
-                  )
-                  : "No registrada"}
-              </span>
+              <span>{prettyDate(entrega.managementDate)}</span>
             </div>
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-2 text-[#0082FF]" />
-              <span>{entrega.managementTime || "Sin hora registrada"}</span>
+              <span>{prettyTime(entrega.managementTime)}</span>
             </div>
             <div className="flex items-center">
               <User className="h-4 w-4 mr-2 text-[#0082FF]" />

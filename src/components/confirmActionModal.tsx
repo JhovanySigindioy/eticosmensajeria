@@ -15,27 +15,25 @@ import { cn } from "@/lib/utils";
 interface ConfirmActionModalProps {
     open: boolean;
     onClose: () => void;
-    onConfirm: () => void;
-    state: "confirm" | "loading" | "success" | "error";
+    onConfirm?: () => void;
+    state?: "confirm" | "loading" | "success" | "error";
+    title: string;
     message?: string;
 }
 
-type ConfirmActionButton = "confirm" | "cancel" | "close";
+const buttonTypes = ["confirm", "cancel", "close"] as const;
+type ButtonType = typeof buttonTypes[number];
 
 const stateConfig: {
-    [key in ConfirmActionModalProps["state"]]: {
-        title: string;
-        desc: string;
+    [key in "confirm" | "loading" | "success" | "error"]: {
         icon: React.ElementType;
         color: string;
         bg: string;
         ring: string;
-        buttons: ConfirmActionButton[];
+        buttons: ButtonType[];
     };
 } = {
     confirm: {
-        title: "¿Estás seguro?",
-        desc: "Esta acción actualizará los datos del paciente. ¿Deseas continuar?",
         icon: ShieldCheck,
         color: "text-blue-600",
         bg: "bg-gradient-to-r from-blue-100 to-cyan-100",
@@ -43,8 +41,6 @@ const stateConfig: {
         buttons: ["confirm", "cancel"],
     },
     loading: {
-        title: "Procesando...",
-        desc: "Estamos actualizando los datos del paciente.",
         icon: Loader2,
         color: "text-indigo-600",
         bg: "bg-gradient-to-r from-indigo-100 to-violet-100",
@@ -52,8 +48,6 @@ const stateConfig: {
         buttons: [],
     },
     success: {
-        title: "¡Actualización exitosa!",
-        desc: "Los datos fueron actualizados correctamente.",
         icon: CheckCircle2,
         color: "text-green-600",
         bg: "bg-gradient-to-r from-green-100 to-teal-100",
@@ -61,8 +55,6 @@ const stateConfig: {
         buttons: ["close"],
     },
     error: {
-        title: "Error al actualizar",
-        desc: "No fue posible guardar los cambios. Intenta nuevamente.",
         icon: AlertTriangle,
         color: "text-red-600",
         bg: "bg-gradient-to-r from-red-100 to-orange-100",
@@ -75,7 +67,8 @@ export function ConfirmActionModal({
     open,
     onClose,
     onConfirm,
-    state,
+    state = "confirm",
+    title,
     message,
 }: ConfirmActionModalProps) {
     const config = stateConfig[state];
@@ -89,16 +82,12 @@ export function ConfirmActionModal({
                     "bg-white backdrop-blur-xl"
                 )}
             >
-                {/* Badge con ícono */}
+                {/* Ícono */}
                 <motion.div
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className={cn(
-                        "mx-auto mb-4 w-fit rounded-full p-3 ring-4",
-                        config.bg,
-                        config.ring
-                    )}
+                    className={cn("mx-auto mb-4 w-fit rounded-full p-3 ring-4", config.bg, config.ring)}
                 >
                     <Icon
                         className={cn(
@@ -109,18 +98,18 @@ export function ConfirmActionModal({
                     />
                 </motion.div>
 
-                {/* Texto principal */}
+                {/* Texto dinámico desde props */}
                 <DialogHeader className="text-center">
                     <DialogTitle className={cn("text-lg font-semibold", config.color)}>
-                        {config.title}
+                        {title}
                     </DialogTitle>
                     <hr className="py-2" />
                     <DialogDescription className="text-[#0A1C41] font-semibold">
-                        {message ?? config.desc}
+                        {message}
                     </DialogDescription>
                 </DialogHeader>
 
-                {/* Botones dinámicos */}
+                {/* Botones */}
                 <DialogFooter className="mt-6 flex justify-center gap-3">
                     {config.buttons.includes("cancel") && (
                         <Button

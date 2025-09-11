@@ -8,6 +8,7 @@ interface EntregasState {
     selectedEntrega: SavedEntregaRes | null;
 
     addOrUpdateEntrega: (entrega: SavedEntregaRes) => void;
+    setEntregas: (entregas: SavedEntregaRes[]) => void; // 👈 nuevo
     setSelectedEntrega: (entrega: SavedEntregaRes | null) => void;
     updateCallResult: (
         managementId: number,
@@ -26,14 +27,21 @@ export const useEntregasPendientesStore = create<EntregasState>((set) => ({
             const exists = state.entregas.some(
                 (e) => e.managementId === entrega.managementId
             );
-            return {
-                entregas: exists
-                    ? state.entregas.map((e) =>
-                        e.managementId === entrega.managementId ? entrega : e
-                    )
-                    : [entrega, ...state.entregas],
-            };
+
+            let nuevasEntregas = exists
+                ? state.entregas.map((e) =>
+                    e.managementId === entrega.managementId ? entrega : e
+                )
+                : [entrega, ...state.entregas];
+
+            if (nuevasEntregas.length > 20) {
+                nuevasEntregas = nuevasEntregas.slice(0, 20);
+            }
+
+            return { entregas: nuevasEntregas };
         }),
+
+    setEntregas: (entregas) => set({ entregas }), // 👈 aquí cargas todas de golpe
 
     setSelectedEntrega: (entrega) => set({ selectedEntrega: entrega }),
 

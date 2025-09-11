@@ -21,8 +21,6 @@ export function AuthLoginPage() {
                                 data.tokenjwt
                             );
 
-                            console.log("Contrato cargado:", contractData);
-
                             login(data, contractData);
                         } catch (error) {
                             console.error("Error cargando contrato:", error);

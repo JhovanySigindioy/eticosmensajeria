@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { History, Loader2, Package } from "lucide-react";
+import { History, Loader2, Package, RefreshCcw, RefreshCcwDot, RefreshCcwDotIcon, RefreshCcwIcon } from "lucide-react";
 import { useEntregasPendientesStore } from "@/store/useEntregasPendientesStore";
 import { EntregaCard } from "./EntregaCard";
 import type { SavedEntregaRes } from "@/interfaces/entregaResponse";
@@ -55,17 +55,23 @@ export function HistoryPanel() {
       {/* 📋 Listado de entregas */}
       <AnimatePresence>
         {isLoading ? (
-          <div className="flex flex-col gap-2 mt-10">
-            <Loader2 className="h-8 w-8 animate-spin text-[#0082FF]" />
+          <div className="flex flex-col gap-2 mt-10 mx-auto">
+            <Loader2 className="h-8 w-8 animate-spin text-[#0082FF] mx-auto" />
             <p className="mt-2 text-sm text-[#0A1C41] font-semibold">
               Cargando entregas...
             </p>
           </div>
 
         ) : isError ? (
-          <p className="text-center text-red-500 mt-5 p-4 bg-red-200 rounded-md">
-            Error al cargar las entregas.
-          </p>
+          <div className="flex flex-col gap-2  mx-auto w-full">
+            <p className="text-center text-red-500 mt-5 p-2 bg-red-50 rounded-md border border-red-200 font-semibold text-[14px] flex items-center gap-4 justify-center" >
+              Error al cargar las entregas.
+              <button onClick={() => refetch()} >
+                <RefreshCcwIcon className="h-5 w-5 text-red-500 hover:text-red-700 border border-red-500 rounded p" />
+              </button>
+            </p>
+
+          </div>
         ) : filteredEntregas.length > 0 ? (
           <div className="space-y-3 border-gray-200 px-5 py-1 overflow-y-auto rounded-md scroll-hidden h-[71vh]">
             {filteredEntregas.map((e: SavedEntregaRes) => (

@@ -11,7 +11,7 @@ export interface ContractData {
   pharmacy: PharmacyData;
 }
 
-// Define la interfaz genérica para la respuesta de la API
+// Define la interfaz generica para la respuesta de la API
 export interface ApiResponse<T> {
   success: boolean;
   data: T | null;

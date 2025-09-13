@@ -3,16 +3,17 @@ import { AuthLoginForm } from "./AuthLoginForm";
 import { useLoginMutation } from "../hooks/useLoginMutation";
 import { useAuth } from "../hooks/useAuth";
 import { getContractService } from "@/api/contract.service";
+import type { AuthSuccessResponse } from "@/auth/interfaces/authResponse";
 
 export function AuthLoginPage() {
     const loginMutation = useLoginMutation();
     const { login } = useAuth();
 
-    const handleSubmit = (idusers: string, password: string) => {
+    const handleSubmit = (idUsers: string, password: string) => {
         loginMutation.mutate(
-            { idusers, password },
+            { idUsers, password },
             {
-                onSuccess: async (data) => {
+                onSuccess: async (data: AuthSuccessResponse) => {
                     if (data?.tokenjwt) {
                         try {
                             const contractData = await getContractService(
@@ -23,10 +24,10 @@ export function AuthLoginPage() {
 
                             login(data, contractData);
                         } catch (error) {
-                            console.error("Error cargando contrato:", error);
+                            console.error("❌ Error cargando contrato:", error);
                         }
                     } else {
-                        console.error("La respuesta de la API no contiene un token JWT.");
+                        console.error("⚠️ La respuesta de la API no contiene un token JWT.");
                     }
                 },
             }

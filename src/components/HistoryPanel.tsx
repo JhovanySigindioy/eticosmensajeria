@@ -2,12 +2,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { History, Loader2, Package, RefreshCcw, RefreshCcwDot, RefreshCcwDotIcon, RefreshCcwIcon } from "lucide-react";
+import { Download, History, Loader2, Package, RefreshCcw, RefreshCcwDot, RefreshCcwDotIcon, RefreshCcwIcon } from "lucide-react";
 import { useEntregasPendientesStore } from "@/store/useEntregasPendientesStore";
 import { EntregaCard } from "./EntregaCard";
 import type { SavedEntregaRes } from "@/interfaces/entregaResponse";
 import { useAuthStore } from "@/auth/store/auth.store"; // 👈 para obtener token
 import { useEntrega } from "@/hooks/useEntrega";
+import { Button } from "./ui/button";
 
 export function HistoryPanel() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,9 +45,23 @@ export function HistoryPanel() {
     <>
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-[#0A1C41] flex items-center gap-2">
-            <History className="h-4 w-4 text-[#0082FF]" />
-            Historial de Gestión
+          <CardTitle className="text-[#0A1C41]  flex items-center justify-between gap-2">
+            <div className="flex gap-2">
+              <History className="h-4 w-4 text-[#0082FF]" />
+              Historial de Gestión
+            </div>
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  alert("Coming soon");
+                }}
+                className="border border-[#005cbf] text-[#005cbf] bg- hover:bg-[#005cbf] hover:text-white"
+              >
+                INSUMOS <Download />
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
       </Card>

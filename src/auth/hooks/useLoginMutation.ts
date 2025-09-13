@@ -1,17 +1,10 @@
-//src/auth/hooks/useLoginMutation.ts
-import { loginService } from "@/api/auth.service";
-import type { AuthErrorResponse, AuthSuccessResponse } from "@/auth/interfaces/authResponse";
+// src/auth/hooks/useLoginMutation.ts
 import { useMutation } from "@tanstack/react-query";
 import type { UseMutationResult } from "@tanstack/react-query";
+import type { AuthSuccessResponse } from "@/auth/interfaces/authResponse";
+import type { LoginCredentials } from "../interfaces/loginCredentials";
+import { loginService } from "@/api/auth.service";
 
-interface LoginCredentials {
-  idusers: string;
-  password: string;
-}
-
-function isAuthErrorResponse(data: any): data is AuthErrorResponse {
-  return data && typeof data.succes === "string" && data.succes === "false";
-}
 
 export const useLoginMutation = (): UseMutationResult<
   AuthSuccessResponse,
@@ -19,15 +12,7 @@ export const useLoginMutation = (): UseMutationResult<
   LoginCredentials
 > => {
   return useMutation<AuthSuccessResponse, Error, LoginCredentials>({
-    mutationFn: async (credentials: LoginCredentials) => {
-      const response = await loginService(credentials);
-
-      if (isAuthErrorResponse(response)) {
-        throw new Error(response.message);
-      }
-
-      return response as AuthSuccessResponse;
-    },
+    mutationFn: loginService,
     onSuccess: (data) => {
       console.log(" Login exitoso:", data);
     },

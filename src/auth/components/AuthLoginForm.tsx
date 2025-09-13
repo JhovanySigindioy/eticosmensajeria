@@ -17,7 +17,7 @@ import { Lock, User, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 interface AuthLoginFormProps {
-  onLogin: (user: string, password: string) => void;
+  onLogin: (idUsers: string, password: string) => void;
   isLoading?: boolean;
   error?: string | null;
 }
@@ -34,7 +34,7 @@ export function AuthLoginForm({ onLogin, isLoading, error }: AuthLoginFormProps)
   const [showPassword, setShowPassword] = useState(false);
 
   const submit = (data: TLoginSchema) => {
-    onLogin(data.idusers, data.password);
+    onLogin(data.idUsers, data.password);
   };
 
   return (
@@ -69,22 +69,24 @@ export function AuthLoginForm({ onLogin, isLoading, error }: AuthLoginFormProps)
           <CardContent>
             <form onSubmit={handleSubmit(submit)} className="space-y-6">
               {/* Usuario */}
+              {/* Usuario */}
               <div className="space-y-1 relative">
-                <Label htmlFor="idusers" className="text-blue-950">Usuario</Label>
+                <Label htmlFor="idUsers" className="text-blue-950">Usuario</Label>
                 <User className="absolute left-3 top-8 h-5 w-5 text-gray-400 group-focus-within:text-blue-400" />
                 <Input
-                  id="idusers"
+                  id="idUsers" // 👈 corregido
                   type="text"
                   placeholder="Ingresa tu usuario"
-                  {...register("idusers")}
+                  {...register("idUsers")}
                   className={`pl-10 border-gray-300 rounded-lg 
-                    focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all 
-                    ${errors.idusers ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}`}
+      focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all 
+      ${errors.idUsers ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}`}
                 />
-                {errors.idusers && (
-                  <p className="text-red-500 text-xs mt-1">{errors.idusers.message}</p>
+                {errors.idUsers && (
+                  <p className="text-red-500 text-xs mt-1">{errors.idUsers.message}</p>
                 )}
               </div>
+
 
               {/* Contraseña */}
               <div className="space-y-1 relative">

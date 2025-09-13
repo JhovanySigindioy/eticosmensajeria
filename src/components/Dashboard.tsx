@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { LogOut, Building2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/auth/hooks/useAuth";
-import { ValidationForm } from "./ValidationForm";
+
 import { HistoryPanel } from "./HistoryPanel";
+import { LayoutForm } from "./Forms/LayoutForm";
+import { ValidationForm } from "./Forms/ValidationForm";
 
 export function Dashboard() {
     const { user, logout, contractData } = useAuth();
@@ -15,7 +17,7 @@ export function Dashboard() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-between items-center">
                     <div>
                         <img
-                            src="logo-eticos.webp"
+                            src="/logo-eticos.webp"
                             alt="Logo Eticos SAS"
                             className="h-10 w-auto mb-1"
                         />
@@ -73,10 +75,15 @@ export function Dashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
+
+
                     {/* Formulario */}
                     <div className="lg:col-span-2 lg:sticky lg:top-24">
-                        <ValidationForm />
+                        <LayoutForm>
+                            <ValidationForm />
+                        </LayoutForm>
                     </div>
+
 
                     {/* Lista */}
                     <div className="lg:col-span-3 flex flex-col gap-4">

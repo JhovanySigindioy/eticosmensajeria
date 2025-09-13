@@ -9,12 +9,3 @@ export interface AuthSuccessResponse {
   program: number;
   tokenjwt: string;
 }
-
-// Define la interfaz para un error de autenticación de la API
-export interface AuthErrorResponse {
-  message: string;
-  succes: "false";
-}
-
-// Usa un tipo de unión para la respuesta
-export type LoginApiResponse = AuthSuccessResponse | AuthErrorResponse;

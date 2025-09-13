@@ -1,33 +1,32 @@
-//src/api/services/eticos/authService.ts
-import type { AuthErrorResponse, AuthSuccessResponse } from "@/auth/interfaces/authResponse";
+// src/api/services/eticos/authService.ts
+import axios from "axios";
+import type { AuthSuccessResponse } from "@/auth/interfaces/authResponse";
 import { env } from "@/config/env";
-import axios, { AxiosError } from "axios";
+import type { LoginCredentials } from "@/auth/interfaces/loginCredentials";
 
-interface LoginCredentials {
-    idusers: string;
-    password: string;
-}
-
-export type LoginResponse = AuthSuccessResponse | AuthErrorResponse;
-
-export async function loginService(credentials: LoginCredentials): Promise<LoginResponse> {
+export async function loginService(
+    credentials: LoginCredentials
+): Promise<AuthSuccessResponse> {
     try {
-        const response = await axios.post<AuthSuccessResponse>(
-            `${env.eticos.urlLoginApi}`,
+
+        console.log("Datos enviados a la API:", JSON.stringify(credentials, null, 2));
+        const response = await axios.post<{ success: boolean; data: AuthSuccessResponse | null; error: string | null }>(
+            `${env.eticos.urlAuthApi}/login`,
             {
-                idusers: credentials.idusers,
+                idUsers: credentials.idUsers,
                 password: credentials.password,
             },
             {
                 headers: { "Content-Type": "application/json" },
             }
         );
-        return response.data;
-    } catch (error) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response && axiosError.response.data) {
-            return axiosError.response.data as AuthErrorResponse;
+
+        if (!response.data.success || !response.data.data) {
+            throw new Error(response.data.error || "No se pudo iniciar sesión.");
         }
+
+        return response.data.data;
+    } catch (error) {
         throw new Error("Ha ocurrido un error inesperado en el servidor.");
     }
 }
